@@ -62,12 +62,160 @@ We estimate that the slope is \~0.015 mm/g. This calculated slope is fairly clos
 
 The probability the slope was greater than 0 is 1.
 
+### Q1.2
+
+```{r}
+summary(m.flip.mass)
+```
+
+Yes, we can conclude that the slope has a high probability of being different from 0. The 95% CI's exclude 0 (0.01-0.02).
+
+### Q1.3
+
+```{r}
+as_draws_df(m.flip.mass) |> # extract the posterior samples from the model estimate
+  select(b_body_mass_g) |> # pull out the latitude samples from all 4 chains. we'll get a warning that we can ignore.
+  summarize(p_slope_greaterthan_zero = sum(b_body_mass_g > 0)/length(b_body_mass_g))
+
+```
+
+The probability that the slope is greater than 0 is 1.
+
+### Q1.4
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm,
+             y = bill_depth_mm)) +
+  geom_point() +
+  # Let's add in a basic lm just to visualize
+  geom_smooth(method = "lm")
+```
+
+### Q1.4
+
+Bill length has a negative effect on bill depth.
+
 ### Q1.5 Write a couple "results section" sentences with your conclusions about whether bill length is associated with bill depth given this model.
 
-There is a negative relationship between bill length and depth. For every mm increase in bill length, there is a 0.09 mm decrease in bill depth (95% CI -0.12- -0.05).
+There is a negative relationship between bill length and depth. For every 1 mm increase in bill length, there is a 0.09 mm decrease in bill depth (95% CI -0.12- -0.05).
+
+### Q1.6
+
+```{r}
+# flipper length by body mass model
+m.depth.length.species <- 
+  brm(data = penguins, # Give the model the penguins data
+      # Choose a gaussian (normal) distribution
+      family = gaussian,
+      # Specify the model here. 
+      bill_depth_mm ~ 0 + bill_length_mm + species,
+      # Here's where you specify parameters for executing the Markov chains
+      # We're using similar to the defaults, except we set cores to 4 so the analysis runs faster than the default of 1
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      # Setting the "seed" determines which random numbers will get sampled.
+      # In this case, it makes the randomness of the Markov chain runs reproducible 
+      # (so that both of us get the exact same results when running the model)
+      seed = 4,
+      # Save the fitted model object as output - helpful for reloading in the output later
+      file = "output/m.depth.length.species")
+
+```
+
+```{r}
+summary(m.depth.length.species)
+```
+
+```{r}
+plot(m.depth.length.species)
+```
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm,
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+```
+
+#### Q1.7 Visually measure differences in bill depth between species
+
+Visually measure differences in bill depth between species; choose a region of the x-axis which has data for all three species (e.g. around 45mm). Estimate the difference in bill depth (the y-axis) between a) Adelie and Chinstrap and b) Adelie and Gentoo. Are those differences consistent with the differences that we calculated from the model?
+
+Adelie to Chinstrap: 19 - 17.5 = 1.5
+
+Adelie to Gentoo : 19 - 14 = 5
+
+These values are very close to the differences calculated by the model.
 
 ### Q 1.8
 
-*The results from the univariate regression of `bill depth ~ bill length` indicate that the effect of bill length on bill depth was a change of **0.02 mm** of bill depth for every 1mm of bill length. When we add in `species`, the results from the multivariate regression of `bill depth ~ bill length + species` indicate that the effect of bill length on bill depth was a change of **0.2** mm of bill depth for every 1mm of bill length.* (Remember to add in a few extra sentences here)
+*The results from the univariate regression of `bill depth ~ bill length` indicate that the effect of bill length on bill depth was a change of **0.02 mm** of bill depth for every 1mm of bill length. When we add in `species`, the results from the multivariate regression of `bill depth ~ bill length + species` indicate that the effect of bill length on bill depth was a change of **0.2** mm of bill depth for every 1mm of bill length.*
 
-By adding in the effect of species on bill depth, the relationship switched from negative to positive. This reveals that the assumption that bill depth decreases with bill length, as shown in the univariate model, was false.
+By adding in the effect of species on bill depth, the relationship switched from negative to positive. This reveals that the assumption that bill depth decreases with bill length, as shown in the univariate model, was false, and it was necessary to account for the effect of length.
+
+## Part 2
+
+### Load in the data
+
+```{r}
+iris <- datasets::iris
+```
+
+### Q2.1
+
+We hypothesize that as flower petal length has a positive correlation with sepal length, but that this effect varies by species.
+
+### Q2.2
+
+```{r}
+ggplot(iris,aes(x=Sepal.Length, y=Petal.Length,color=Species))+
+  geom_point()
+```
+
+### Q2.3
+
+```{r}
+iris_sepal_petal <- 
+  brm(data = iris, # Give the model the penguins data
+      # Choose a gaussian (normal) distribution
+      family = gaussian,
+      # Specify the model here. 
+      Sepal.Length ~ 0 + Petal.Length + Species,
+      # Here's where you specify parameters for executing the Markov chains
+      # We're using similar to the defaults, except we set cores to 4 so the analysis runs faster than the default of 1
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      # Setting the "seed" determines which random numbers will get sampled.
+      # In this case, it makes the randomness of the Markov chain runs reproducible 
+      # (so that both of us get the exact same results when running the model)
+      seed = 4,
+      # Save the fitted model object as output - helpful for reloading in the output later
+      file = "output/iris_sepal_petal")
+```
+
+### Q2.4
+
+The rhat values for the different species are all equal to 1, which means we can be confident in the model.
+
+Additionally, the plots have a single, clear peak and a good variance distribution.
+
+```{r}
+plot(iris_sepal_petal)
+
+```
+
+```{r}
+summary(iris_sepal_petal)
+```
+
+### Q2.5
+
+The effect of sepal length on petal length is 0.9: for every 1 cm increase in sepal length, there is a 0.9 cm increase in petal width. This is reasonable different from 0, because the CI's exclude 0.
+
+Setosa has the longest petal length, then versicolor, then virginica has the shortest.
+
+### Q2.6
+
+With our analysis, we can determine that for every 1 cm increase in sepal length there is a 0.9 cm increase in petal length (95% CI 0.79-1.04). This effect is consistent across species of iris flower, though with variance in petal length across species.

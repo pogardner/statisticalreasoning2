@@ -137,6 +137,8 @@ b)  Do a quick visual estimate of the slope from the ggplot graph at the beginni
 
 Using what you learned last class, interpret whether the slope seems to have a low or high probability of being different from zero. What do you conclude? Why or why not do you reach this conclusion?
 
+Yes, we can conclude that the slope has a high probability of being different from 0. The 95% CI's exclude 0 (0.01-0.02).
+
 ------------------------------------------------------------------------
 
 ### Q1.3: What is the probability that the slope is different from zero?
@@ -420,7 +422,7 @@ Assess whether the model ran correctly by looking at R hat, the chains, and the 
 
 The rhat values for the different species are all equal to 1, which means we can be confident in the model.
 
-Additionally
+Additionally, the plots have a single, clear peak and a good variance distribution.
 
 ```{r}
 plot(iris_sepal_petal)

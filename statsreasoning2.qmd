@@ -1,0 +1,73 @@
+---
+title: "Stats reasoning 2"
+authors: "Sam and Paige"
+format: pdf
+editor: visual
+---
+
+## Load Libraries
+
+```{r}
+library(brms) # for statistics
+library(tidyverse) # for data wrangling
+library(ggeffects) # for  prediction plots
+library(palmerpenguins) # data we'll be using
+
+```
+
+## 1.1 Refresh on coefficients
+
+```{r}
+penguins <- palmerpenguins::penguins
+```
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g,
+             y = flipper_length_mm)) +
+  geom_point() +
+  # Add a geom_smooth with an "lm" line for visualization
+  geom_smooth(method = "lm")
+```
+
+```{r}
+m.flip.mass <- 
+  brm(data = penguins, # Give the model the penguins data
+      # Choose a gaussian (normal) distribution
+      family = gaussian,
+      # Specify the model here. 
+      flipper_length_mm ~ 1 + body_mass_g,
+      # Here's where you specify parameters for executing the Markov chains
+      # We're using similar to the defaults, except we set cores to 4 so the analysis runs faster than the default of 1
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      # Setting the "seed" determines which random numbers will get sampled.
+      # In this case, it makes the randomness of the Markov chain runs reproducible 
+      # (so that both of us get the exact same results when running the model)
+      seed = 4,
+      # Save the fitted model object as output - helpful for reloading in the output later
+      file = "output/m.flip.mass")
+```
+
+### Q 1.1
+
+```{r}
+?palmerpenguins
+```
+
+The magnitude of the relationship is 0.02. Therefore, the flipper length increases by 0.02 for every 1 gram of body mass.
+
+### Q1.1b
+
+We estimate that the slope is \~0.015 mm/g. This calculated slope is fairly close to the modeled slope.
+
+The probability the slope was greater than 0 is 1.
+
+### Q1.5 Write a couple "results section" sentences with your conclusions about whether bill length is associated with bill depth given this model.
+
+There is a negative relationship between bill length and depth. For every mm increase in bill length, there is a 0.09 mm decrease in bill depth (95% CI -0.12- -0.05).
+
+### Q 1.8
+
+*The results from the univariate regression of `bill depth ~ bill length` indicate that the effect of bill length on bill depth was a change of **0.02 mm** of bill depth for every 1mm of bill length. When we add in `species`, the results from the multivariate regression of `bill depth ~ bill length + species` indicate that the effect of bill length on bill depth was a change of **0.2** mm of bill depth for every 1mm of bill length.* (Remember to add in a few extra sentences here)
+
+By adding in the effect of species on bill depth, the relationship switched from negative to positive. This reveals that the assumption that bill depth decreases with bill length, as shown in the univariate model, was false.
